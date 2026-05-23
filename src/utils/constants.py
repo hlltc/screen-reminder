@@ -28,7 +28,6 @@ IDLE_POLL_INTERVAL_SECONDS = 5     # check idle state every 5s
 
 # ── Overlay ──────────────────────────────────────────
 OVERLAY_OPACITY = 0.85
-OVERLAY_WARNING_TIMEOUT_SECONDS = 15  # time before overlay appears after soft reminder
 
 # ── Gamification ─────────────────────────────────────
 STREAK_WEEKLY_REST_DAY = None      # 0=Mon ... 6=Sun, None = no rest day

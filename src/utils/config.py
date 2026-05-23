@@ -22,7 +22,6 @@ from src.utils.constants import (
     HYDRATION_SINGLE_ML,
     IDLE_THRESHOLD_SECONDS,
     OVERLAY_OPACITY,
-    OVERLAY_WARNING_TIMEOUT_SECONDS,
     SEDENTARY_INTERVAL_MIN,
     SEDENTARY_LOCK_SECONDS,
 )
@@ -71,7 +70,6 @@ class AppConfig(BaseSettings):
 
     # ── Overlay ───────────────────────────────────────
     overlay_opacity: float = Field(default=OVERLAY_OPACITY, ge=0.1, le=1.0)
-    overlay_warning_timeout_seconds: int = OVERLAY_WARNING_TIMEOUT_SECONDS
 
     # ── Misc ──────────────────────────────────────────
     language: str = "zh"

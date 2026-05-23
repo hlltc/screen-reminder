@@ -140,11 +140,6 @@ class SettingsDialog(QDialog):
         self._eye_strength = QComboBox()
         self._eye_strength.addItems(["温和", "中等", "严格"])
         form.addRow("提醒强度：", self._eye_strength)
-
-        self._overlay_warning = QSpinBox()
-        self._overlay_warning.setRange(5, 60)
-        self._overlay_warning.setSuffix(" 秒")
-        form.addRow("遮罩延迟：", self._overlay_warning)
         layout.addWidget(gb)
 
         gb2 = QGroupBox("遮罩透明度")
@@ -245,7 +240,6 @@ class SettingsDialog(QDialog):
         self._eye_rest.setValue(c.eye_care_rest_seconds)
         idx = {"gentle": 0, "moderate": 1, "strict": 2}.get(c.eye_care_strength, 0)
         self._eye_strength.setCurrentIndex(idx)
-        self._overlay_warning.setValue(c.overlay_warning_timeout_seconds)
         self._overlay_opacity.setValue(int(c.overlay_opacity * 100))
         self._opacity_label.setText(f"{int(c.overlay_opacity * 100)}%")
 

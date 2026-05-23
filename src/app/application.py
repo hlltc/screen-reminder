@@ -92,7 +92,6 @@ class Application:
         self._config.work_end_h = 23
         self._config.lunch_start_h = 3
         self._config.lunch_end_h = 3    # no lunch
-        self._config.overlay_warning_timeout_seconds = 3
         self._config.idle_threshold_seconds = 9999
         logger.info("🎬 Demo mode: 24/7 hours, {}s eye / {}s sed rest",
                     self._config.eye_care_rest_seconds,
@@ -188,7 +187,8 @@ class Application:
         self._scheduler.stop()
         self._idle_detector.stop()
         self._tray.stop()
-        self._config.save()
+        if not self._demo_mode:
+            self._config.save()
         self._qapp.quit()
 
     def _on_idle(self) -> None:
