@@ -32,8 +32,11 @@ def _get_user_dir() -> Path:
 def _setup_logging() -> None:
     """Configure loguru handlers. Never crash on logging setup failure."""
     logger.remove()
-    logger.add(sys.stderr, level="INFO",
-               format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | {message}")
+    # In PyInstaller --windowed mode, sys.stderr is None (no console).
+    # Only add a stderr handler when a console is actually available.
+    if sys.stderr is not None:
+        logger.add(sys.stderr, level="INFO",
+                   format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | {message}")
     try:
         log_dir = _get_user_dir() / ".screen-reminder" / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -46,7 +49,7 @@ def _setup_logging() -> None:
             diagnose=True,
         )
     except Exception:
-        logger.warning("Cannot create log file — logging to stderr only")
+        pass  # best-effort file logging; already have stderr if available
 
 
 _setup_logging()
