@@ -150,41 +150,41 @@ class TrayPopupWidget(QWidget):
             }
         """
 
-        # Pause row
-        pause_row = QHBoxLayout()
+        # Pause row 1: 30min | 1h
+        pause_row1 = QHBoxLayout()
         btn = QPushButton("⏸ 暂停 30min")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.pause_requested.emit(30))
-        pause_row.addWidget(btn)
+        pause_row1.addWidget(btn)
         btn = QPushButton("⏸ 暂停 1h")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.pause_requested.emit(60))
-        pause_row.addWidget(btn)
-        layout.addLayout(pause_row)
+        pause_row1.addWidget(btn)
+        layout.addLayout(pause_row1)
 
-        # Drink row 1
-        drink_row1 = QHBoxLayout()
-        btn = QPushButton("💧 喝了 50ml")
+        # Pause row 2: 2h | drink 100ml
+        pause_row2 = QHBoxLayout()
+        btn = QPushButton("⏸ 暂停 2h")
         btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.drink_requested.emit(50))
-        drink_row1.addWidget(btn)
+        btn.clicked.connect(lambda: self.pause_requested.emit(120))
+        pause_row2.addWidget(btn)
         btn = QPushButton("💧 喝了 100ml")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.drink_requested.emit(100))
-        drink_row1.addWidget(btn)
-        layout.addLayout(drink_row1)
+        pause_row2.addWidget(btn)
+        layout.addLayout(pause_row2)
 
-        # Drink row 2
-        drink_row2 = QHBoxLayout()
+        # Drink row: 200ml | 300ml
+        drink_row = QHBoxLayout()
         btn = QPushButton("💧 喝了 200ml")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.drink_requested.emit(200))
-        drink_row2.addWidget(btn)
+        drink_row.addWidget(btn)
         btn = QPushButton("💧 喝了 300ml")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.drink_requested.emit(300))
-        drink_row2.addWidget(btn)
-        layout.addLayout(drink_row2)
+        drink_row.addWidget(btn)
+        layout.addLayout(drink_row)
 
         layout.addStretch()
 
