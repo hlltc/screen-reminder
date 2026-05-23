@@ -168,33 +168,31 @@ class TrayPopupWidget(QWidget):
         pause_row.addWidget(btn)
         layout.addLayout(pause_row)
 
-        # Drink row
-        drink_row = QHBoxLayout()
+        # Drink row 1
+        drink_row1 = QHBoxLayout()
+        btn = QPushButton("💧 喝了 50ml")
+        btn.setStyleSheet(btn_style)
+        btn.clicked.connect(lambda: self.drink_requested.emit(50))
+        drink_row1.addWidget(btn)
+        btn = QPushButton("💧 喝了 100ml")
+        btn.setStyleSheet(btn_style)
+        btn.clicked.connect(lambda: self.drink_requested.emit(100))
+        drink_row1.addWidget(btn)
+        layout.addLayout(drink_row1)
+
+        # Drink row 2
+        drink_row2 = QHBoxLayout()
         btn = QPushButton("💧 喝了 200ml")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.drink_requested.emit(200))
-        drink_row.addWidget(btn)
+        drink_row2.addWidget(btn)
         btn = QPushButton("💧 喝了 300ml")
         btn.setStyleSheet(btn_style)
         btn.clicked.connect(lambda: self.drink_requested.emit(300))
-        drink_row.addWidget(btn)
-        layout.addLayout(drink_row)
+        drink_row2.addWidget(btn)
+        layout.addLayout(drink_row2)
 
         layout.addStretch()
-
-        # ── Footer ──
-        footer = QHBoxLayout()
-        settings_btn = QPushButton("⚙ 设置")
-        settings_btn.setStyleSheet(
-            "color: #888888; font-size: 12px; background: transparent; border: none;"
-        )
-        settings_btn.clicked.connect(lambda: self.settings_requested.emit())
-        footer.addWidget(settings_btn)
-        footer.addStretch()
-        version_label = QLabel("v0.1.0")
-        version_label.setStyleSheet("color: #555555; font-size: 11px;")
-        footer.addWidget(version_label)
-        layout.addLayout(footer)
 
     def _start_refresh_timer(self) -> None:
         self._refresh_timer = QTimer(self)
