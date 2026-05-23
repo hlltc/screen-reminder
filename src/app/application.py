@@ -24,9 +24,13 @@ from src.utils.constants import APP_VERSION
 class Application:
     """Top-level application controller."""
 
-    def __init__(self, config_path: Path) -> None:
+    def __init__(self, config_path: Path, demo_mode: bool = False) -> None:
         self._config = AppConfig.load(config_path)
         self._config._config_path = config_path
+        self._demo_mode = demo_mode
+
+        if demo_mode:
+            self._apply_demo_overrides()
 
         # Init database
         init_db(self._config.db_path)
@@ -75,6 +79,18 @@ class Application:
             lambda: self._tray.set_status_color("#4ECDC4")
         )
 
+    def _apply_demo_overrides(self) -> None:
+        """Set 24/7 work hours and increase idle threshold for demo."""
+        self._config.work_start_h = 0
+        self._config.work_end_h = 23
+        self._config.lunch_start_h = 3
+        self._config.lunch_end_h = 3    # no lunch
+        self._config.overlay_warning_timeout_seconds = 3
+        self._config.eye_care_rest_seconds = 8
+        self._config.sedentary_lock_seconds = 10
+        self._config.idle_threshold_seconds = 9999
+        logger.info("🎬 Demo mode: 24/7 work hours, short overlay delays")
+
     def run(self) -> int:
         """Start all services and enter the Qt event loop."""
         logger.info("Starting Screen Reminder v{}", APP_VERSION)
@@ -90,8 +106,19 @@ class Application:
         self._hydration_module.start()
         self._scheduler.start()
 
+        if self._demo_mode:
+            self._start_demo_triggers()
+
         logger.info("All services started.")
         return self._qapp.exec()
+
+    def _start_demo_triggers(self) -> None:
+        """Fire each reminder with staggered delay so they don't overlap."""
+        from PySide6.QtCore import QTimer
+        logger.info("🎬 Demo: reminders will fire at +8s / +16s / +24s")
+        QTimer.singleShot(8_000, self._eye_module._on_reminder)
+        QTimer.singleShot(16_000, self._hydration_module._on_reminder)
+        QTimer.singleShot(24_000, self._spine_module._on_reminder)
 
     def _open_settings(self) -> None:
         """Open the settings dialog and reconfigure services on save."""
