@@ -69,6 +69,9 @@ class Application:
         self._spine_module.sedentary_break_triggered.connect(
             lambda: self._tray.set_status_color("#FF6B6B")
         )
+        self._hydration_module.hydration_reminder_triggered.connect(
+            lambda: self._tray.show_message("💧 喝水提醒", "该喝水了！打开左键弹窗点一下")
+        )
         self._hydration_module.hydration_goal_reached.connect(
             lambda: self._tray.set_status_color("#4ECDC4")
         )
@@ -80,16 +83,20 @@ class Application:
         )
 
     def _apply_demo_overrides(self) -> None:
-        """Set 24/7 work hours and increase idle threshold for demo."""
+        """Set 24/7 work hours & disable idle detection for demo.
+
+        Rest/lock durations keep user-configured values so the UI is
+        representative of normal operation.
+        """
         self._config.work_start_h = 0
         self._config.work_end_h = 23
         self._config.lunch_start_h = 3
         self._config.lunch_end_h = 3    # no lunch
         self._config.overlay_warning_timeout_seconds = 3
-        self._config.eye_care_rest_seconds = 8
-        self._config.sedentary_lock_seconds = 10
         self._config.idle_threshold_seconds = 9999
-        logger.info("🎬 Demo mode: 24/7 work hours, short overlay delays")
+        logger.info("🎬 Demo mode: 24/7 hours, {}s eye / {}s sed rest",
+                    self._config.eye_care_rest_seconds,
+                    self._config.sedentary_lock_seconds)
 
     def run(self) -> int:
         """Start all services and enter the Qt event loop."""

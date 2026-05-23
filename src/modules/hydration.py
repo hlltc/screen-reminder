@@ -15,8 +15,9 @@ from src.utils.config import AppConfig
 class HydrationModule(QObject):
     """Manages timed hydration reminders with quick-drink tracking."""
 
-    hydration_updated = Signal()  # emitted when water amount changes
+    hydration_updated = Signal()
     hydration_goal_reached = Signal()
+    hydration_reminder_triggered = Signal()
 
     def __init__(self, config: AppConfig, scheduler: Scheduler) -> None:
         super().__init__()
@@ -72,7 +73,8 @@ class HydrationModule(QObject):
         log_event("hydration", "reminded")
         send_notification(
             title="喝水提醒",
-            message="该喝水了！建议喝 200ml 💧",
+            message="该喝水了！建议喝 200ml",
             timeout=10,
         )
+        self.hydration_reminder_triggered.emit()
         self.hydration_updated.emit()
