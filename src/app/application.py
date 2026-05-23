@@ -102,6 +102,13 @@ class Application:
     def _on_config_changed(self) -> None:
         """Apply config changes at runtime."""
         logger.info("Config changed — reloading settings")
+        logger.info(
+            "New intervals: eye={}min sed={}min hyd={}min",
+            self._config.eye_care_interval_min,
+            self._config.sedentary_interval_min,
+            self._config.hydration_interval_min,
+        )
+
         # Update idle detector threshold
         self._idle_detector.threshold = self._config.idle_threshold_seconds
 

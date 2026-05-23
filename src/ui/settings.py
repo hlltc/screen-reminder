@@ -21,6 +21,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from loguru import logger
+
 from src.utils.config import AppConfig
 
 
@@ -290,6 +292,14 @@ class SettingsDialog(QDialog):
         c.hydration_single_ml = self._hyd_single.value()
         c.hydration_daily_ml = self._hyd_daily.value()
 
+        logger.info(
+            "Settings saved: eye={}min/{}s sed={}min/{}s hyd={}min",
+            c.eye_care_interval_min,
+            c.eye_care_rest_seconds,
+            c.sedentary_interval_min,
+            c.sedentary_lock_seconds,
+            c.hydration_interval_min,
+        )
         c.save()
         self.config_changed.emit()
         self.accept()

@@ -12,3 +12,8 @@ wheels/
 # Project settings
 .claude/
 .python-version
+
+# Build artifacts
+dist/
+build/
+*.spec
