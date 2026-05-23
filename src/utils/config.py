@@ -38,7 +38,7 @@ class ReminderConfig(BaseSettings):
 class AppConfig(BaseSettings):
     """Application configuration backed by a JSON file."""
 
-    model_config = SettingsConfigDict(arbitrary_types_allowed=True)
+    model_config = SettingsConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
     # ── Work schedule ─────────────────────────────────
     work_start_h: int = Field(default=DEFAULT_WORK_START_H, ge=0, le=23)
