@@ -264,7 +264,7 @@ class TrayManager(QObject):
         self._hydration_module = hydration_module
 
         self._tray = QSystemTrayIcon()
-        self._tray.setIcon(_load_tray_icon("#4ECDC4"))
+        self._tray.setIcon(_load_tray_icon())
         self._tray.setToolTip("Screen Reminder")
         self._tray.setVisible(True)
 
