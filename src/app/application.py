@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from PySide6.QtGui import QIcon as QtQIcon
 from PySide6.QtWidgets import QApplication
 
 from loguru import logger
@@ -17,6 +18,7 @@ from src.modules.hydration import HydrationModule
 from src.modules.spine_care import SpineCareModule
 from src.tray.tray_icon import TrayManager
 from src.ui.settings import SettingsDialog
+from src.utils.assets import get_icon_path
 from src.utils.config import AppConfig
 from src.utils.constants import APP_VERSION
 
@@ -40,6 +42,7 @@ class Application:
         self._qapp = QApplication(sys.argv)
         self._qapp.setQuitOnLastWindowClosed(False)
         self._qapp.setApplicationName("Screen Reminder")
+        self._qapp.setWindowIcon(QtQIcon(get_icon_path("eye-protect.png")))
 
         # Core engines
         self._idle_detector = IdleDetector(

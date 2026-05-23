@@ -17,3 +17,6 @@ wheels/
 dist/
 build/
 *.spec
+
+# Generated icon
+assets/icons/eye-protect.ico

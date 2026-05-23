@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 
 from loguru import logger
 
+from src.utils.assets import get_icon_path
 from src.utils.config import AppConfig
 
 
@@ -35,6 +36,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self._config = config
         self.setWindowTitle("Screen Reminder — 设置")
+        self.setWindowIcon(QIcon(get_icon_path("eye-protect.png")))
         self.setMinimumSize(460, 420)
         self.setWindowFlags(
             self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint

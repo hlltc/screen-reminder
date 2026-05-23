@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 
 from PySide6.QtCore import QObject, QPoint, Qt, Signal, QTimer
-from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath, QPixmap
+from PySide6.QtGui import QAction, QColor, QCursor, QIcon, QPainter, QPainterPath
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -24,23 +24,17 @@ from PySide6.QtWidgets import (
 
 from src.engine.scheduler import Scheduler
 from src.modules.hydration import HydrationModule
+from src.utils.assets import get_icon_path
 from src.utils.config import AppConfig
 
 
 # ── Helpers ────────────────────────────────────────────────
 
 
-def _make_tray_icon(color: str = "#4ECDC4", size: int = 32) -> QIcon:
-    """Generate a simple filled-circle tray icon in the given colour."""
-    pixmap = QPixmap(size, size)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    painter = QPainter(pixmap)
-    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    painter.setBrush(QColor(color))
-    painter.setPen(Qt.PenStyle.NoPen)
-    painter.drawEllipse(3, 3, size - 6, size - 6)
-    painter.end()
-    return QIcon(pixmap)
+def _load_tray_icon() -> QIcon:
+    """Load the application icon for the system tray."""
+    path = get_icon_path("eye-protect.png")
+    return QIcon(path)
 
 
 def _format_time(minutes: int, seconds: int) -> str:
@@ -270,7 +264,7 @@ class TrayManager(QObject):
         self._hydration_module = hydration_module
 
         self._tray = QSystemTrayIcon()
-        self._tray.setIcon(_make_tray_icon("#4ECDC4"))
+        self._tray.setIcon(_load_tray_icon("#4ECDC4"))
         self._tray.setToolTip("Screen Reminder")
         self._tray.setVisible(True)
 
@@ -365,8 +359,8 @@ class TrayManager(QObject):
 
     # ── Public ─────────────────────────────────────────
 
-    def set_status_color(self, color: str) -> None:
-        self._tray.setIcon(_make_tray_icon(color))
+    def set_status_color(self, _color: str = "") -> None:
+        self._tray.setIcon(_load_tray_icon())
 
     def show_message(self, title: str, msg: str) -> None:
         self._tray.showMessage(

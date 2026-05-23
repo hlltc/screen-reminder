@@ -15,10 +15,26 @@ from pathlib import Path
 import PyInstaller.__main__
 
 ROOT = Path(__file__).resolve().parent
-APP_NAME = "Screen Reminder"
+ASSETS = ROOT / "assets" / "icons"
+ICON_PNG = ASSETS / "eye-protect.png"
+ICON_ICO = ASSETS / "eye-protect.ico"
 ENTRY = str(ROOT / "src" / "__main__.py")
 DIST = ROOT / "dist"
 BUILD = ROOT / "build"
+
+
+def _generate_ico() -> Path:
+    """Generate .ico from .png using Pillow (already a dependency)."""
+    if ICON_ICO.exists():
+        return ICON_ICO
+    print("[build] Generating .ico from .png ...")
+    from PIL import Image
+    img = Image.open(ICON_PNG)
+    if img.mode != "RGBA":
+        img = img.convert("RGBA")
+    sizes = [256, 128, 64, 48, 32, 16]
+    img.save(ICON_ICO, format="ICO", sizes=[(s, s) for s in sizes])
+    return ICON_ICO
 
 
 def get_platform_config() -> dict:
@@ -26,17 +42,19 @@ def get_platform_config() -> dict:
     is_mac = sys.platform == "darwin"
     is_win = sys.platform == "win32"
 
+    ico_path = str(_generate_ico())
+
     common = [
         ENTRY,
         "--name", "ScreenReminder",
         "--onefile",
-        "--windowed",                    # no console window
+        "--windowed",
         "--clean",
         "--noconfirm",
         f"--distpath={DIST}",
         f"--workpath={BUILD}",
-        "--add-data", f"{ROOT / 'assets'}{';' if is_win else ':'}assets",
-        # Hidden imports that PyInstaller might miss
+        "--icon", ico_path,
+        "--add-data", f"{ROOT / 'assets'};assets" if is_win else f"{ROOT / 'assets'}:assets",
         "--hidden-import", "pystray._win32",
         "--hidden-import", "pystray._xorg",
         "--hidden-import", "pystray._darwin",
@@ -57,12 +75,10 @@ def get_platform_config() -> dict:
     if is_mac:
         common += [
             "--osx-bundle-identifier", "com.screenreminder.app",
-            "--codesign-identity", "-",   # ad-hoc signing for local dev
+            "--codesign-identity", "-",
         ]
     elif is_win:
-        common += [
-            "--uac-admin",
-        ]
+        common += ["--uac-admin"]
 
     return {
         "args": common,
@@ -71,7 +87,6 @@ def get_platform_config() -> dict:
 
 
 def clean() -> None:
-    """Remove previous build artifacts."""
     for d in (DIST, BUILD):
         if d.exists():
             shutil.rmtree(d)
@@ -79,11 +94,9 @@ def clean() -> None:
 
 
 def build() -> Path:
-    """Run PyInstaller and return the output binary path."""
     config = get_platform_config()
     print(f"[build] Platform: {sys.platform}")
     print(f"[build] Running PyInstaller with {len(config['args'])} args ...")
-
     PyInstaller.__main__.run(config["args"])
 
     output = DIST / config["output_name"]
@@ -93,7 +106,6 @@ def build() -> Path:
     else:
         print(f"[build] ERROR: output not found at {output}")
         sys.exit(1)
-
     return output
 
 
@@ -101,10 +113,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build Screen Reminder")
     parser.add_argument("--clean", action="store_true", help="Clean before building")
     args = parser.parse_args()
-
     if args.clean:
         clean()
-
     build()
 
 
