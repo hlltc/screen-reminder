@@ -1,0 +1,29 @@
+[project]
+name = "screen-reminder"
+version = "0.1.0"
+description = "A cross-platform desktop health reminder for programmers"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "apscheduler>=3.11.2",
+    "darkdetect>=0.8.0",
+    "loguru>=0.7.3",
+    "pillow>=12.2.0",
+    "plyer>=2.1.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.1",
+    "pynput>=1.8.2",
+    "pyside6>=6.11.1",
+    "pystray>=0.19.5",
+    "sqlalchemy>=2.0.49",
+]
+
+[project.scripts]
+screen-reminder = "src.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
