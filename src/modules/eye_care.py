@@ -5,7 +5,7 @@ Fires immediately: fullscreen countdown overlay with configured rest duration.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, QTimer, Signal
 
 from src.data.data_access import log_event
 from src.engine.scheduler import Scheduler
@@ -37,9 +37,10 @@ class EyeCareModule(QObject):
         self._scheduler.add_task(task)
 
     def _on_reminder(self) -> None:
+        """Called from scheduler background thread — marshal to main thread."""
         log_event("eye_care", "reminded")
         self.eye_break_triggered.emit()
-        self._show_overlay()
+        QTimer.singleShot(0, self._show_overlay)
 
     def _build_subtitle(self) -> str:
         sec = self._config.eye_care_rest_seconds

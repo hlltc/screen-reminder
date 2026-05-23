@@ -5,7 +5,7 @@ Fires immediately: fullscreen countdown overlay with configured stand duration.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, QTimer, Signal
 
 from src.data.data_access import log_event
 from src.engine.scheduler import Scheduler
@@ -37,9 +37,10 @@ class SpineCareModule(QObject):
         self._scheduler.add_task(task)
 
     def _on_reminder(self) -> None:
+        """Called from scheduler background thread — marshal to main thread."""
         log_event("sedentary", "reminded")
         self.sedentary_break_triggered.emit()
-        self._show_overlay()
+        QTimer.singleShot(0, self._show_overlay)
 
     def _build_subtitle(self) -> str:
         total_sec = self._config.sedentary_lock_seconds

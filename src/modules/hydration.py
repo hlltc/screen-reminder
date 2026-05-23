@@ -5,7 +5,7 @@ Fires a small overlay with drink/skip buttons so it's impossible to miss.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject, QTimer, Signal
 
 from src.data.data_access import get_today_hydration_ml, log_hydration, log_event
 from src.engine.scheduler import Scheduler
@@ -72,9 +72,10 @@ class HydrationModule(QObject):
     # ── Internals ──────────────────────────────────────
 
     def _on_reminder(self) -> None:
+        """Called from scheduler background thread — marshal to main thread."""
         log_event("hydration", "reminded")
         self.hydration_reminder_triggered.emit()
-        self._show_overlay()
+        QTimer.singleShot(0, self._show_overlay)
 
     def _show_overlay(self) -> None:
         if self._overlay is not None:
