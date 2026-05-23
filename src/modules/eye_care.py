@@ -1,21 +1,20 @@
-"""Eye Care module — 20-20-20 rule reminder."""
+"""Eye Care module — 20-20-20 rule reminder.
+
+Fires immediately: fullscreen countdown overlay with configured rest duration.
+"""
 
 from __future__ import annotations
 
 from PySide6.QtCore import QObject, Signal
 
 from src.data.data_access import log_event
-from src.engine.notification import send_notification
 from src.engine.scheduler import Scheduler
 from src.ui.overlay import CountdownOverlay
 from src.utils.config import AppConfig
 
 
 class EyeCareModule(QObject):
-    """Manages 20-20-20 eye care reminders.
-
-    Soft notification at interval → countdown overlay for rest duration.
-    """
+    """Manages 20-20-20 eye care reminders."""
 
     eye_break_triggered = Signal()
     eye_break_finished = Signal()
@@ -40,20 +39,11 @@ class EyeCareModule(QObject):
     def _on_reminder(self) -> None:
         log_event("eye_care", "reminded")
         self.eye_break_triggered.emit()
+        self._show_overlay()
 
-        # Stage 1: soft notification
-        send_notification(
-            title="眼睛休息一下",
-            message="请看向 6 米外的物体，持续 20 秒 👁",
-            timeout=8,
-        )
-
-        # Stage 2: overlay countdown (after short delay to allow user to respond)
-        from PySide6.QtCore import QTimer
-        QTimer.singleShot(
-            self._config.overlay_warning_timeout_seconds * 1000,
-            self._show_overlay,
-        )
+    def _build_subtitle(self) -> str:
+        sec = self._config.eye_care_rest_seconds
+        return f"看向 6 米外，保持 {sec} 秒"
 
     def _show_overlay(self) -> None:
         if self._overlay is not None:
@@ -64,7 +54,7 @@ class EyeCareModule(QObject):
         self._overlay.start_countdown(
             seconds=self._config.eye_care_rest_seconds,
             title="眼睛休息",
-            subtitle="看向 6 米外，保持 20 秒",
+            subtitle=self._build_subtitle(),
         )
 
     def _on_finished(self) -> None:

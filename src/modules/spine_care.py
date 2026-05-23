@@ -1,21 +1,20 @@
-"""Spine Care module — sedentary / standing reminder."""
+"""Spine Care module — sedentary / standing reminder.
+
+Fires immediately: fullscreen countdown overlay with configured stand duration.
+"""
 
 from __future__ import annotations
 
 from PySide6.QtCore import QObject, Signal
 
 from src.data.data_access import log_event
-from src.engine.notification import send_notification
 from src.engine.scheduler import Scheduler
 from src.ui.overlay import CountdownOverlay
 from src.utils.config import AppConfig
 
 
 class SpineCareModule(QObject):
-    """Manages sedentary (久坐) reminders.
-
-    After configured interval, notifies user to stand up; shows overlay countdown.
-    """
+    """Manages sedentary (久坐) reminders."""
 
     sedentary_break_triggered = Signal()
     sedentary_break_finished = Signal()
@@ -40,18 +39,15 @@ class SpineCareModule(QObject):
     def _on_reminder(self) -> None:
         log_event("sedentary", "reminded")
         self.sedentary_break_triggered.emit()
+        self._show_overlay()
 
-        send_notification(
-            title="久坐提醒",
-            message="该站起来活动一下了！走一走，伸个懒腰 🚶",
-            timeout=10,
-        )
-
-        from PySide6.QtCore import QTimer
-        QTimer.singleShot(
-            self._config.overlay_warning_timeout_seconds * 1000,
-            self._show_overlay,
-        )
+    def _build_subtitle(self) -> str:
+        total_sec = self._config.sedentary_lock_seconds
+        mins = total_sec // 60
+        secs = total_sec % 60
+        if secs == 0:
+            return f"离开座位活动 {mins} 分钟，保护腰椎"
+        return f"离开座位活动 {mins} 分 {secs} 秒，保护腰椎"
 
     def _show_overlay(self) -> None:
         if self._overlay is not None:
@@ -62,7 +58,7 @@ class SpineCareModule(QObject):
         self._overlay.start_countdown(
             seconds=self._config.sedentary_lock_seconds,
             title="该站起来了！",
-            subtitle="离开座位走动 3 分钟，保护腰椎",
+            subtitle=self._build_subtitle(),
         )
 
     def _on_finished(self) -> None:

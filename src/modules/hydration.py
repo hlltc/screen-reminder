@@ -1,14 +1,15 @@
-"""Hydration module — water drinking reminder."""
+"""Hydration module — water drinking reminder.
+
+Fires a small overlay with drink/skip buttons so it's impossible to miss.
+"""
 
 from __future__ import annotations
-
-import datetime as _dt
 
 from PySide6.QtCore import QObject, Signal
 
 from src.data.data_access import get_today_hydration_ml, log_hydration, log_event
-from src.engine.notification import send_notification
 from src.engine.scheduler import Scheduler
+from src.ui.overlay import CountdownOverlay, QuickDrinkOverlay
 from src.utils.config import AppConfig
 
 
@@ -23,6 +24,7 @@ class HydrationModule(QObject):
         super().__init__()
         self._config = config
         self._scheduler = scheduler
+        self._overlay: QuickDrinkOverlay | None = None
 
     def start(self) -> None:
         from src.engine.scheduler import ReminderTask
@@ -71,10 +73,22 @@ class HydrationModule(QObject):
 
     def _on_reminder(self) -> None:
         log_event("hydration", "reminded")
-        send_notification(
-            title="喝水提醒",
-            message="该喝水了！建议喝 200ml",
-            timeout=10,
-        )
         self.hydration_reminder_triggered.emit()
+        self._show_overlay()
+
+    def _show_overlay(self) -> None:
+        if self._overlay is not None:
+            self._overlay.close()
+        self._overlay = QuickDrinkOverlay(self._config)
+        self._overlay.drunk.connect(self._on_drunk)
+        self._overlay.skipped.connect(self._on_skipped)
+        self._overlay.show()
+
+    def _on_drunk(self, amount: int) -> None:
+        self.record_drink(amount)
+        self.hydration_updated.emit()
+
+    def _on_skipped(self) -> None:
+        log_event("hydration", "skipped")
+        self._scheduler.reset_task("hydration")
         self.hydration_updated.emit()

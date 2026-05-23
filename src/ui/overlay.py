@@ -172,3 +172,151 @@ class CountdownOverlay(QWidget):
             self._on_skip()
         else:
             super().keyPressEvent(event)
+
+
+# ────────────────────────────────────────────────────────
+# Quick drink overlay — small centered card, no countdown
+# ────────────────────────────────────────────────────────
+
+class QuickDrinkOverlay(QWidget):
+    """A small centered overlay prompting the user to drink, with drink/skip buttons."""
+
+    drunk = Signal(int)
+    skipped = Signal()
+
+    _CARD_W, _CARD_H = 480, 260
+
+    def __init__(self, config: AppConfig, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._config = config
+
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.WindowStaysOnTopHint
+            | Qt.WindowType.Tool
+        )
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+
+        screen = self.screen()
+        if screen:
+            sg = screen.geometry()
+            self.setGeometry(sg)
+
+        self._setup_ui()
+        self._setup_auto_dismiss()
+
+    def _setup_ui(self) -> None:
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # The visible card: we draw in paintEvent, children float on top
+        inner = QWidget()
+        inner.setFixedSize(self._CARD_W, self._CARD_H)
+        inner.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+        vbox = QVBoxLayout(inner)
+        vbox.setContentsMargins(40, 28, 40, 28)
+        vbox.setSpacing(14)
+
+        title = QLabel("该喝水了！")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setStyleSheet("color: #FFFFFF; font-size: 36px; font-weight: bold;")
+        vbox.addWidget(title)
+
+        sub = QLabel("建议喝 200ml，保持水分充足")
+        sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        sub.setStyleSheet("color: #CCCCCC; font-size: 18px;")
+        vbox.addWidget(sub)
+
+        vbox.addSpacing(20)
+
+        # Buttons
+        from PySide6.QtWidgets import QHBoxLayout
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(16)
+
+        btn_style = """
+            QPushButton {
+                background: rgba(78, 205, 196, 0.20);
+                color: #4ECDC4;
+                border: 1px solid rgba(78, 205, 196, 0.4);
+                border-radius: 10px;
+                padding: 10px 28px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background: rgba(78, 205, 196, 0.30);
+            }
+        """
+        skip_style = """
+            QPushButton {
+                background: rgba(255,255,255,0.10);
+                color: #999999;
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 10px;
+                padding: 10px 28px;
+                font-size: 16px;
+            }
+            QPushButton:hover {
+                background: rgba(255,255,255,0.18);
+                color: #CCCCCC;
+            }
+        """
+
+        drink_btn = QPushButton("💧 喝了 200ml")
+        drink_btn.setStyleSheet(btn_style)
+        drink_btn.clicked.connect(lambda: self._on_drunk(200))
+        btn_row.addWidget(drink_btn)
+
+        skip_btn = QPushButton("跳过")
+        skip_btn.setStyleSheet(skip_style)
+        skip_btn.clicked.connect(self._on_skip)
+        btn_row.addWidget(skip_btn)
+
+        btn_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vbox.addLayout(btn_row)
+
+        layout.addWidget(inner, alignment=Qt.AlignmentFlag.AlignCenter)
+
+    def _setup_auto_dismiss(self) -> None:
+        from PySide6.QtCore import QTimer
+        self._dismiss_timer = QTimer(self)
+        self._dismiss_timer.setSingleShot(True)
+        self._dismiss_timer.timeout.connect(self._on_skip)
+        self._dismiss_timer.start(15_000)
+
+    def _on_drunk(self, amount: int) -> None:
+        self._dismiss_timer.stop()
+        self.hide()
+        self.drunk.emit(amount)
+
+    def _on_skip(self) -> None:
+        self._dismiss_timer.stop()
+        self.hide()
+        self.skipped.emit()
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Fullscreen dim
+        opacity = int(self._config.overlay_opacity * 255)
+        painter.fillRect(self.rect(), QColor(18, 18, 22, opacity))
+
+        # Centered card
+        cx = (self.width() - self._CARD_W) // 2
+        cy = (self.height() - self._CARD_H) // 2
+        path = QPainterPath()
+        path.addRoundedRect(cx, cy, self._CARD_W, self._CARD_H, 20, 20)
+        painter.fillPath(path, QColor(30, 30, 40, 220))
+
+        super().paintEvent(event)
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            self._on_skip()
+        else:
+            super().keyPressEvent(event)
