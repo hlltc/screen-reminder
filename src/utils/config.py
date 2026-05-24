@@ -117,8 +117,6 @@ class AppConfig(BaseSettings):
     def is_work_time(self, dt: "datetime.datetime") -> bool:  # noqa: F821
         """Check if a given datetime falls within configured work hours."""
         import datetime as _dt
-        if dt.weekday() not in self.work_days:
-            return False
         t = dt.time()
         if t < _dt.time(self.work_start_h, 0):
             return False

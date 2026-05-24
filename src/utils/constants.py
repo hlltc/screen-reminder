@@ -20,7 +20,7 @@ DEFAULT_WORK_START_H = 9
 DEFAULT_WORK_END_H = 18
 DEFAULT_LUNCH_START_H = 12
 DEFAULT_LUNCH_END_H = 13
-DEFAULT_WORK_DAYS = {0, 1, 2, 3, 4}  # Mon-Fri
+DEFAULT_WORK_DAYS = {0, 1, 2, 3, 4, 5, 6}  # Every day
 
 # ── Idle detection ───────────────────────────────────
 IDLE_THRESHOLD_SECONDS = 120       # consider user away after 2 min idle
