@@ -96,11 +96,11 @@ class TrayPopupWidget(QWidget):
             | Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setFixedSize(320, 240)
+        self.setFixedSize(320, 300)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(8)
+        layout.setSpacing(6)
 
         # ── Header ──
         header = QHBoxLayout()
@@ -115,28 +115,46 @@ class TrayPopupWidget(QWidget):
         header.addStretch()
         layout.addLayout(header)
 
-        # ── Status lines ──
+        # ── Reminder status ──
         self._eye_line = QLabel("👁 护眼：计算中...")
-        self._eye_line.setStyleSheet("color: #CCCCCC; font-size: 13px; line-height: 1.4;")
+        self._eye_line.setStyleSheet("color: #CCCCCC; font-size: 13px;")
         layout.addWidget(self._eye_line)
 
         self._sed_line = QLabel("🚶 久坐：计算中...")
-        self._sed_line.setStyleSheet("color: #CCCCCC; font-size: 13px; line-height: 1.4;")
+        self._sed_line.setStyleSheet("color: #CCCCCC; font-size: 13px;")
         layout.addWidget(self._sed_line)
 
         self._water_line = QLabel("💧 饮水：-- / --ml")
-        self._water_line.setStyleSheet("color: #CCCCCC; font-size: 13px; line-height: 1.4;")
+        self._water_line.setStyleSheet("color: #CCCCCC; font-size: 13px;")
         layout.addWidget(self._water_line)
 
-        layout.addSpacing(8)
+        # ── Separator ──
+        layout.addSpacing(6)
+        sep = QLabel("──────────────────────────")
+        sep.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        sep.setStyleSheet("color: #444444; font-size: 10px;")
+        layout.addWidget(sep)
+
+        # ── Today's stats ──
+        stats_title = QLabel("📊 今日统计")
+        stats_title.setStyleSheet("color: #AAAAAA; font-size: 12px; font-weight: bold;")
+        layout.addWidget(stats_title)
+
+        self._eye_stats = QLabel("护眼：完成 0 次，跳过 0 次")
+        self._eye_stats.setStyleSheet("color: #999999; font-size: 12px;")
+        layout.addWidget(self._eye_stats)
+
+        self._sed_stats = QLabel("久坐：站立 0 次，跳过 0 次")
+        self._sed_stats.setStyleSheet("color: #999999; font-size: 12px;")
+        layout.addWidget(self._sed_stats)
+
+        layout.addSpacing(4)
 
         # ── Hint ──
         hint = QLabel("右键单击图标进行操作")
         hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        hint.setStyleSheet("color: #666666; font-size: 11px;")
+        hint.setStyleSheet("color: #555555; font-size: 11px;")
         layout.addWidget(hint)
-
-        layout.addStretch()
 
     def _start_refresh_timer(self) -> None:
         self._refresh_timer = QTimer(self)
@@ -164,27 +182,30 @@ class TrayPopupWidget(QWidget):
         from src.data.data_access import get_today_event_count, get_today_hydration_ml
 
         if self._scheduler:
-            # Eye care
+            # Eye care timing
             eye_rem = self._scheduler.get_remaining_seconds("eye_care")
             if eye_rem is not None and eye_rem > 0:
                 m, s = int(eye_rem // 60), int(eye_rem % 60)
-                timing = f"下次 {_format_time(m, s)}"
+                self._eye_line.setText(f"👁 护眼：下次 {_format_time(m, s)}")
             else:
-                timing = "休息中…"
-            eye_completed = get_today_event_count("eye_care", "completed")
-            eye_skipped = get_today_event_count("eye_care", "skipped")
-            self._eye_line.setText(f"👁 护眼：{timing}  |  完成 {eye_completed} 次，跳过 {eye_skipped} 次")
+                self._eye_line.setText("👁 护眼：休息中…")
 
-            # Sedentary
+            # Sedentary timing
             sed_rem = self._scheduler.get_remaining_seconds("sedentary")
             if sed_rem is not None and sed_rem > 0:
                 m, s = int(sed_rem // 60), int(sed_rem % 60)
-                timing = f"下次 {_format_time(m, s)}"
+                self._sed_line.setText(f"🚶 久坐：下次 {_format_time(m, s)}")
             else:
-                timing = "站立中…"
+                self._sed_line.setText("🚶 久坐：站立中…")
+
+            # Today's stats
+            eye_completed = get_today_event_count("eye_care", "completed")
+            eye_skipped = get_today_event_count("eye_care", "skipped")
+            self._eye_stats.setText(f"护眼：完成 {eye_completed} 次，跳过 {eye_skipped} 次")
+
             sed_completed = get_today_event_count("sedentary", "completed")
             sed_skipped = get_today_event_count("sedentary", "skipped")
-            self._sed_line.setText(f"🚶 久坐：{timing}  |  站立 {sed_completed} 次，跳过 {sed_skipped} 次")
+            self._sed_stats.setText(f"久坐：站立 {sed_completed} 次，跳过 {sed_skipped} 次")
 
         # Hydration
         if self._hydration_module:
