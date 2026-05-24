@@ -96,7 +96,7 @@ class TrayPopupWidget(QWidget):
             | Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setFixedSize(280, 240)
+        self.setFixedSize(320, 240)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
@@ -172,7 +172,8 @@ class TrayPopupWidget(QWidget):
             else:
                 timing = "休息中…"
             eye_completed = get_today_event_count("eye_care", "completed")
-            self._eye_line.setText(f"👁 护眼：{timing}  |  已完成 {eye_completed} 次")
+            eye_skipped = get_today_event_count("eye_care", "skipped")
+            self._eye_line.setText(f"👁 护眼：{timing}  |  完成 {eye_completed} 次，跳过 {eye_skipped} 次")
 
             # Sedentary
             sed_rem = self._scheduler.get_remaining_seconds("sedentary")
@@ -182,7 +183,8 @@ class TrayPopupWidget(QWidget):
             else:
                 timing = "站立中…"
             sed_completed = get_today_event_count("sedentary", "completed")
-            self._sed_line.setText(f"🚶 久坐：{timing}  |  已站立 {sed_completed} 次")
+            sed_skipped = get_today_event_count("sedentary", "skipped")
+            self._sed_line.setText(f"🚶 久坐：{timing}  |  站立 {sed_completed} 次，跳过 {sed_skipped} 次")
 
         # Hydration
         if self._hydration_module:
