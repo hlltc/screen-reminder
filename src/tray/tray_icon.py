@@ -16,7 +16,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMenu,
-    QPushButton,
     QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
@@ -73,11 +72,7 @@ def _win_foreground_hack() -> None:
 
 
 class TrayPopupWidget(QWidget):
-    """Lightweight popup card that appears on left-click of the tray icon."""
-
-    drink_requested = Signal(int)
-    pause_requested = Signal(int)
-    settings_requested = Signal()
+    """Read-only status card that appears on left-click of the tray icon."""
 
     def __init__(
         self,
@@ -101,11 +96,11 @@ class TrayPopupWidget(QWidget):
             | Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setFixedSize(280, 350)
+        self.setFixedSize(280, 240)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(10)
+        layout.setSpacing(8)
 
         # ── Header ──
         header = QHBoxLayout()
@@ -121,70 +116,25 @@ class TrayPopupWidget(QWidget):
         layout.addLayout(header)
 
         # ── Status lines ──
-        self._eye_time = QLabel("👁 下次护眼：计算中...")
-        self._eye_time.setStyleSheet("color: #CCCCCC; font-size: 13px;")
-        layout.addWidget(self._eye_time)
+        self._eye_line = QLabel("👁 护眼：计算中...")
+        self._eye_line.setStyleSheet("color: #CCCCCC; font-size: 13px; line-height: 1.4;")
+        layout.addWidget(self._eye_line)
 
-        self._sed_time = QLabel("🚶 下次站立：计算中...")
-        self._sed_time.setStyleSheet("color: #CCCCCC; font-size: 13px;")
-        layout.addWidget(self._sed_time)
+        self._sed_line = QLabel("🚶 久坐：计算中...")
+        self._sed_line.setStyleSheet("color: #CCCCCC; font-size: 13px; line-height: 1.4;")
+        layout.addWidget(self._sed_line)
 
-        self._water_progress = QLabel("💧 饮水：-- / 2000ml")
-        self._water_progress.setStyleSheet("color: #CCCCCC; font-size: 13px;")
-        layout.addWidget(self._water_progress)
+        self._water_line = QLabel("💧 饮水：-- / --ml")
+        self._water_line.setStyleSheet("color: #CCCCCC; font-size: 13px; line-height: 1.4;")
+        layout.addWidget(self._water_line)
 
-        layout.addSpacing(4)
+        layout.addSpacing(8)
 
-        # ── Quick buttons ──
-        btn_style = """
-            QPushButton {
-                background: rgba(78, 205, 196, 0.15);
-                color: #4ECDC4;
-                border: 1px solid rgba(78, 205, 196, 0.3);
-                border-radius: 6px;
-                padding: 8px 12px;
-                font-size: 12px;
-            }
-            QPushButton:hover {
-                background: rgba(78, 205, 196, 0.25);
-            }
-        """
-
-        # Pause row 1: 30min | 1h
-        pause_row1 = QHBoxLayout()
-        btn = QPushButton("⏸ 暂停 30min")
-        btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.pause_requested.emit(30))
-        pause_row1.addWidget(btn)
-        btn = QPushButton("⏸ 暂停 1h")
-        btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.pause_requested.emit(60))
-        pause_row1.addWidget(btn)
-        layout.addLayout(pause_row1)
-
-        # Pause row 2: 2h | drink 100ml
-        pause_row2 = QHBoxLayout()
-        btn = QPushButton("⏸ 暂停 2h")
-        btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.pause_requested.emit(120))
-        pause_row2.addWidget(btn)
-        btn = QPushButton("💧 喝了 100ml")
-        btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.drink_requested.emit(100))
-        pause_row2.addWidget(btn)
-        layout.addLayout(pause_row2)
-
-        # Drink row: 200ml | 300ml
-        drink_row = QHBoxLayout()
-        btn = QPushButton("💧 喝了 200ml")
-        btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.drink_requested.emit(200))
-        drink_row.addWidget(btn)
-        btn = QPushButton("💧 喝了 300ml")
-        btn.setStyleSheet(btn_style)
-        btn.clicked.connect(lambda: self.drink_requested.emit(300))
-        drink_row.addWidget(btn)
-        layout.addLayout(drink_row)
+        # ── Hint ──
+        hint = QLabel("右键单击图标进行操作")
+        hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        hint.setStyleSheet("color: #666666; font-size: 11px;")
+        layout.addWidget(hint)
 
         layout.addStretch()
 
@@ -211,26 +161,37 @@ class TrayPopupWidget(QWidget):
         self.raise_()
 
     def _refresh_status(self) -> None:
+        from src.data.data_access import get_today_event_count, get_today_hydration_ml
+
         if self._scheduler:
+            # Eye care
             eye_rem = self._scheduler.get_remaining_seconds("eye_care")
             if eye_rem is not None and eye_rem > 0:
                 m, s = int(eye_rem // 60), int(eye_rem % 60)
-                self._eye_time.setText(f"👁 下次护眼：{_format_time(m, s)}")
+                timing = f"下次 {_format_time(m, s)}"
             else:
-                self._eye_time.setText("👁 护眼中...")
+                timing = "休息中…"
+            eye_completed = get_today_event_count("eye_care", "completed")
+            self._eye_line.setText(f"👁 护眼：{timing}  |  已完成 {eye_completed} 次")
 
+            # Sedentary
             sed_rem = self._scheduler.get_remaining_seconds("sedentary")
             if sed_rem is not None and sed_rem > 0:
                 m, s = int(sed_rem // 60), int(sed_rem % 60)
-                self._sed_time.setText(f"🚶 下次站立：{_format_time(m, s)}")
+                timing = f"下次 {_format_time(m, s)}"
             else:
-                self._sed_time.setText("🚶 站立中...")
+                timing = "站立中…"
+            sed_completed = get_today_event_count("sedentary", "completed")
+            self._sed_line.setText(f"🚶 久坐：{timing}  |  已站立 {sed_completed} 次")
 
+        # Hydration
         if self._hydration_module:
             ml = self._hydration_module.today_ml
             goal = self._hydration_module.daily_goal_ml
             pct = int(self._hydration_module.progress_ratio * 100)
-            self._water_progress.setText(f"💧 饮水：{ml} / {goal}ml ({pct}%)")
+            self._water_line.setText(f"💧 饮水：{ml} / {goal}ml ({pct}%)")
+        else:
+            self._water_line.setText("💧 饮水：-- / --ml")
 
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
@@ -268,11 +229,8 @@ class TrayManager(QObject):
         self._tray.setToolTip("Screen Reminder")
         self._tray.setVisible(True)
 
-        # Popup widget (left-click)
+        # Popup widget (left-click) — read-only status only
         self._popup = TrayPopupWidget(config, hydration_module, scheduler)
-        self._popup.drink_requested.connect(self._on_popup_drink)
-        self._popup.pause_requested.connect(self._on_popup_pause)
-        self._popup.settings_requested.connect(self.settings_requested.emit)
 
         # Build context menu — NO submenus, flat list for Windows compat
         self._menu = self._build_menu()
@@ -290,6 +248,7 @@ class TrayManager(QObject):
         items = [
             ("⏸ 暂停 30 分钟", lambda: self._on_pause(30)),
             ("⏸ 暂停 1 小时",  lambda: self._on_pause(60)),
+            ("⏸ 暂停 2 小时",  lambda: self._on_pause(120)),
             ("🚫 今天禁用",     lambda: self._on_disable_today()),
             ("⏸ 暂停到明天",   lambda: self._on_pause_until_tomorrow()),
         ]
@@ -301,13 +260,20 @@ class TrayManager(QObject):
         m.addSeparator()
 
         items2 = [
+            ("💧 记录喝水 (100ml)", lambda: self.drink_requested.emit(100)),
             ("💧 记录喝水 (200ml)", lambda: self.drink_requested.emit(200)),
-            ("⚙ 设置",              lambda: self.settings_requested.emit()),
+            ("💧 记录喝水 (300ml)", lambda: self.drink_requested.emit(300)),
         ]
         for label, callback in items2:
             act = QAction(label, m)
             act.triggered.connect(callback)
             m.addAction(act)
+
+        m.addSeparator()
+
+        act = QAction("⚙ 设置", m)
+        act.triggered.connect(self.settings_requested.emit)
+        m.addAction(act)
 
         m.addSeparator()
 
@@ -365,12 +331,6 @@ class TrayManager(QObject):
             QSystemTrayIcon.MessageIcon.Information,
             3000,
         )
-
-    def _on_popup_drink(self, amount: int) -> None:
-        self._hydration_module.record_drink(amount)
-
-    def _on_popup_pause(self, minutes: int) -> None:
-        self._on_pause(minutes)
 
     # ── Public ─────────────────────────────────────────
 

@@ -26,6 +26,22 @@ def log_hydration(amount_ml: int) -> None:
         session.close()
 
 
+def get_today_event_count(event_type: str, action: str | None = None) -> int:
+    """Count RestEvent rows for today, optionally filtered by action."""
+    session = get_session()
+    try:
+        today = _dt.date.today()
+        q = session.query(RestEvent).filter(
+            RestEvent.created_at >= today,
+            RestEvent.event_type == event_type,
+        )
+        if action:
+            q = q.filter(RestEvent.action == action)
+        return q.count()
+    finally:
+        session.close()
+
+
 def get_today_hydration_ml() -> int:
     session = get_session()
     try:
