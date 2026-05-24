@@ -96,7 +96,7 @@ class TrayPopupWidget(QWidget):
             | Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.setFixedSize(320, 300)
+        self.setFixedSize(320, 330)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 14, 16, 14)
@@ -124,7 +124,7 @@ class TrayPopupWidget(QWidget):
         self._sed_line.setStyleSheet("color: #CCCCCC; font-size: 13px;")
         layout.addWidget(self._sed_line)
 
-        self._water_line = QLabel("💧 饮水：-- / --ml")
+        self._water_line = QLabel("💧 饮水：计算中...")
         self._water_line.setStyleSheet("color: #CCCCCC; font-size: 13px;")
         layout.addWidget(self._water_line)
 
@@ -147,6 +147,10 @@ class TrayPopupWidget(QWidget):
         self._sed_stats = QLabel("久坐：站立 0 次，跳过 0 次")
         self._sed_stats.setStyleSheet("color: #999999; font-size: 12px;")
         layout.addWidget(self._sed_stats)
+
+        self._water_stats = QLabel("饮水：0 ml")
+        self._water_stats.setStyleSheet("color: #999999; font-size: 12px;")
+        layout.addWidget(self._water_stats)
 
         layout.addSpacing(4)
 
@@ -207,14 +211,23 @@ class TrayPopupWidget(QWidget):
             sed_skipped = get_today_event_count("sedentary", "skipped")
             self._sed_stats.setText(f"久坐：站立 {sed_completed} 次，跳过 {sed_skipped} 次")
 
-        # Hydration
+        # Hydration reminder timing
+        if self._scheduler:
+            water_rem = self._scheduler.get_remaining_seconds("hydration")
+            if water_rem is not None and water_rem > 0:
+                m, s = int(water_rem // 60), int(water_rem % 60)
+                self._water_line.setText(f"💧 饮水：下次 {_format_time(m, s)}")
+            else:
+                self._water_line.setText("💧 饮水：提醒中…")
+
+        # Hydration stats
         if self._hydration_module:
             ml = self._hydration_module.today_ml
             goal = self._hydration_module.daily_goal_ml
             pct = int(self._hydration_module.progress_ratio * 100)
-            self._water_line.setText(f"💧 饮水：{ml} / {goal}ml ({pct}%)")
+            self._water_stats.setText(f"饮水：{ml} / {goal}ml ({pct}%)")
         else:
-            self._water_line.setText("💧 饮水：-- / --ml")
+            self._water_stats.setText("饮水：-- / --ml")
 
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
