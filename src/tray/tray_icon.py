@@ -290,6 +290,7 @@ class TrayManager(QObject):
         items = [
             ("⏸ 暂停 30 分钟", lambda: self._on_pause(30)),
             ("⏸ 暂停 1 小时",  lambda: self._on_pause(60)),
+            ("🚫 今天禁用",     lambda: self._on_disable_today()),
             ("⏸ 暂停到明天",   lambda: self._on_pause_until_tomorrow()),
         ]
         for label, callback in items:
@@ -347,6 +348,20 @@ class TrayManager(QObject):
         self._tray.showMessage(
             "Screen Reminder",
             "已暂停到明天",
+            QSystemTrayIcon.MessageIcon.Information,
+            3000,
+        )
+
+    def _on_disable_today(self) -> None:
+        """Pause all reminders until midnight (start of tomorrow)."""
+        import datetime as _dt
+        now = _dt.datetime.now()
+        tomorrow = now.replace(hour=0, minute=0, second=0, microsecond=0) + _dt.timedelta(days=1)
+        minutes = max(1, int((tomorrow - now).total_seconds() / 60) + 1)
+        self._scheduler.pause(minutes)
+        self._tray.showMessage(
+            "Screen Reminder",
+            "今天已禁用提醒",
             QSystemTrayIcon.MessageIcon.Information,
             3000,
         )
