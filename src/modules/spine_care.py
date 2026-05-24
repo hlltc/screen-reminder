@@ -64,6 +64,11 @@ class SpineCareModule(QObject):
             subtitle=self._build_subtitle(),
         )
 
+    def record_walk(self) -> None:
+        """Manually record a walk event (triggered from tray menu)."""
+        log_event("sedentary", "completed")
+        self._scheduler.reset_task("sedentary")
+
     def _on_finished(self) -> None:
         log_event("sedentary", "completed")
         self._scheduler.reset_task("sedentary")

@@ -248,6 +248,7 @@ class TrayManager(QObject):
     quit_requested = Signal()
     settings_requested = Signal()
     drink_requested = Signal(int)
+    walk_requested = Signal()
 
     def __init__(
         self,
@@ -286,7 +287,6 @@ class TrayManager(QObject):
             ("⏸ 暂停 1 小时",  lambda: self._on_pause(60)),
             ("⏸ 暂停 2 小时",  lambda: self._on_pause(120)),
             ("🚫 今天禁用",     lambda: self._on_disable_today()),
-            ("⏸ 暂停到明天",   lambda: self._on_pause_until_tomorrow()),
         ]
         for label, callback in items:
             act = QAction(label, m)
@@ -296,6 +296,7 @@ class TrayManager(QObject):
         m.addSeparator()
 
         items2 = [
+            ("🚶 记录走动",         lambda: self.walk_requested.emit()),
             ("💧 记录喝水 (100ml)", lambda: self.drink_requested.emit(100)),
             ("💧 记录喝水 (200ml)", lambda: self.drink_requested.emit(200)),
             ("💧 记录喝水 (300ml)", lambda: self.drink_requested.emit(300)),
@@ -341,15 +342,6 @@ class TrayManager(QObject):
         self._tray.showMessage(
             "Screen Reminder",
             f"已暂停 {minutes} 分钟",
-            QSystemTrayIcon.MessageIcon.Information,
-            3000,
-        )
-
-    def _on_pause_until_tomorrow(self) -> None:
-        self._scheduler.pause(24 * 60)
-        self._tray.showMessage(
-            "Screen Reminder",
-            "已暂停到明天",
             QSystemTrayIcon.MessageIcon.Information,
             3000,
         )

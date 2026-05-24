@@ -64,6 +64,7 @@ class Application:
         self._tray.quit_requested.connect(self._on_quit)
         self._tray.settings_requested.connect(self._open_settings)
         self._tray.drink_requested.connect(self._hydration_module.record_drink)
+        self._tray.walk_requested.connect(self._spine_module.record_walk)
 
         # Wire module signals → tray icon color changes
         self._eye_module.eye_break_triggered.connect(

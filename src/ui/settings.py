@@ -114,6 +114,19 @@ class SettingsDialog(QDialog):
         form2.addRow("空闲检测阈值：", self._idle_threshold)
         layout.addWidget(gb2)
 
+        gb3 = QGroupBox("遮罩透明度")
+        h = QHBoxLayout(gb3)
+        self._overlay_opacity = QSlider(Qt.Orientation.Horizontal)
+        self._overlay_opacity.setRange(30, 100)
+        self._overlay_opacity.setTickInterval(10)
+        h.addWidget(self._overlay_opacity)
+        self._opacity_label = QLabel("85%")
+        h.addWidget(self._opacity_label)
+        self._overlay_opacity.valueChanged.connect(
+            lambda v: self._opacity_label.setText(f"{v}%")
+        )
+        layout.addWidget(gb3)
+
         layout.addStretch()
         return w
 
@@ -143,19 +156,6 @@ class SettingsDialog(QDialog):
         self._eye_strength.addItems(["温和", "中等", "严格"])
         form.addRow("提醒强度：", self._eye_strength)
         layout.addWidget(gb)
-
-        gb2 = QGroupBox("遮罩透明度")
-        h = QHBoxLayout(gb2)
-        self._overlay_opacity = QSlider(Qt.Orientation.Horizontal)
-        self._overlay_opacity.setRange(30, 100)
-        self._overlay_opacity.setTickInterval(10)
-        h.addWidget(self._overlay_opacity)
-        self._opacity_label = QLabel("85%")
-        h.addWidget(self._opacity_label)
-        self._overlay_opacity.valueChanged.connect(
-            lambda v: self._opacity_label.setText(f"{v}%")
-        )
-        layout.addWidget(gb2)
 
         layout.addStretch()
         return w
@@ -235,6 +235,8 @@ class SettingsDialog(QDialog):
         self._lunch_end.setTime(QTime(c.lunch_end_h, 0))
         self._launch_at_startup.setChecked(c.launch_at_startup)
         self._idle_threshold.setValue(c.idle_threshold_seconds)
+        self._overlay_opacity.setValue(int(c.overlay_opacity * 100))
+        self._opacity_label.setText(f"{int(c.overlay_opacity * 100)}%")
 
         # Eye
         self._eye_enabled.setChecked(c.eye_care_enabled)
@@ -242,8 +244,6 @@ class SettingsDialog(QDialog):
         self._eye_rest.setValue(c.eye_care_rest_seconds)
         idx = {"gentle": 0, "moderate": 1, "strict": 2}.get(c.eye_care_strength, 0)
         self._eye_strength.setCurrentIndex(idx)
-        self._overlay_opacity.setValue(int(c.overlay_opacity * 100))
-        self._opacity_label.setText(f"{int(c.overlay_opacity * 100)}%")
 
         # Sedentary
         self._sed_enabled.setChecked(c.sedentary_enabled)
@@ -267,14 +267,13 @@ class SettingsDialog(QDialog):
         c.lunch_end_h = self._lunch_end.time().hour()
         c.launch_at_startup = self._launch_at_startup.isChecked()
         c.idle_threshold_seconds = self._idle_threshold.value()
+        c.overlay_opacity = self._overlay_opacity.value() / 100.0
 
         # Eye
         c.eye_care_enabled = self._eye_enabled.isChecked()
         c.eye_care_interval_min = self._eye_interval.value()
         c.eye_care_rest_seconds = self._eye_rest.value()
         c.eye_care_strength = ["gentle", "moderate", "strict"][self._eye_strength.currentIndex()]
-        c.overlay_warning_timeout_seconds = self._overlay_warning.value()
-        c.overlay_opacity = self._overlay_opacity.value() / 100.0
 
         # Sedentary
         c.sedentary_enabled = self._sed_enabled.isChecked()
