@@ -57,7 +57,7 @@ class CountdownOverlay(QWidget):
         self._title_label.setText(self._title)
         self._title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._title_label.setStyleSheet(
-            "color: #FFFFFF; font-size: 52px; font-weight: bold;"
+            "color: #FFFFFF; font-size: 64px; font-weight: bold;"
         )
         layout.addWidget(self._title_label)
 
@@ -66,7 +66,7 @@ class CountdownOverlay(QWidget):
         self._subtitle_label.setText(self._subtitle)
         self._subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._subtitle_label.setStyleSheet(
-            "color: #CCCCCC; font-size: 24px;"
+            "color: #CCCCCC; font-size: 30px;"
         )
         layout.addWidget(self._subtitle_label)
 
@@ -74,7 +74,7 @@ class CountdownOverlay(QWidget):
         self._countdown_label = QLabel()
         self._countdown_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._countdown_label.setStyleSheet(
-            "color: #4ECDC4; font-size: 96px; font-weight: bold;"
+            "color: #4ECDC4; font-size: 128px; font-weight: bold;"
         )
         layout.addWidget(self._countdown_label)
 
@@ -82,7 +82,7 @@ class CountdownOverlay(QWidget):
 
         # Skip button
         self._skip_btn = QPushButton("按 Esc 跳过")
-        self._skip_btn.setFixedSize(220, 52)
+        self._skip_btn.setFixedSize(260, 58)
         self._skip_btn.setStyleSheet(
             """
             QPushButton {
@@ -90,7 +90,7 @@ class CountdownOverlay(QWidget):
                 color: #AAAAAA;
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 10px;
-                font-size: 16px;
+                font-size: 20px;
             }
             QPushButton:hover {
                 background: rgba(255,255,255,0.22);
@@ -155,14 +155,6 @@ class CountdownOverlay(QWidget):
         opacity = int(self._config.overlay_opacity * 255)
         bg = QColor(18, 18, 22, opacity)
         painter.fillRect(self.rect(), bg)
-
-        # Draw a centered rounded card background behind text
-        card_w, card_h = 640, 420
-        card_x = (self.width() - card_w) // 2
-        card_y = (self.height() - card_h) // 2
-        path = QPainterPath()
-        path.addRoundedRect(card_x, card_y, card_w, card_h, 20, 20)
-        painter.fillPath(path, QColor(30, 30, 40, 180))
 
         super().paintEvent(event)
 
